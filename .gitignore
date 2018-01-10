@@ -1,8 +1,5 @@
-# Everything except the addon itself and doc files
-/*
-/*/
-!/addons/
-!README.md
-!LICENSE
-!.gitignore
-!.gitattributes
+addons/
+assets/
+.gitignore
+.gitattributes
+
