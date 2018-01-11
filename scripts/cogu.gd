@@ -10,6 +10,7 @@ var jump_offset = 0
 var stop_jump = false
 var is_colliding_safe = false
 var has_to_release_jump_key = false
+var played_first_sound = false
 var normal
 
 # bullets
@@ -23,15 +24,16 @@ var is_landing_sound_playing = false
 onready var shoot = preload("res://game_objects/projectiles/cogu-shoot.tscn")
 
 func _ready():
-	get_node("Sprite/AnimationPlayer").play("idle")
+	set_hidden(true)
+	#get_node("Sprite/AnimationPlayer").play("idle")
 	
-	set_fixed_process(true)
-	set_process_input(true)
+	#set_fixed_process(true)
+	#set_process_input(true)
 	
 	
 func _input(event):
 	if event.is_action_pressed("shoot") and active_bullets < 3:
-		get_node("SamplePlayer2D").play("bullet")
+		get_node("SamplePlayer2D").play("bullet")	
 		is_shooting = true
 		var bullet = shoot.instance()
 		bullet.set_direction(last_direction)
@@ -78,11 +80,13 @@ func _fixed_process(delta):
 		#print(final_movement)
 		vertical_speed = normal.slide(Vector2(0, vertical_speed)).y
 		move(final_movement)		
-		if normal.y == -1: # if true means that player is colliding
+		if normal.y == -1: # if true means that player is colliding			
 			if not is_landing_sound_playing:
-				get_node("SamplePlayer2D").play("landing")
+				if played_first_sound:
+					get_node("SamplePlayer2D").play("landing")
 				is_landing_sound_playing = true
 			stop_jump = false
+			played_first_sound = true # MUST turn it off when die
 			jump_offset = 0
 			if Input.is_action_pressed("jump"): # avoid constant jumping by keep jump button pressed
 				has_to_release_jump_key = true

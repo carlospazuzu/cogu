@@ -14,3 +14,7 @@ func _on_Timer_timeout():
 	
 	visible = not visible
 	
+
+func _on_Timeout_Timer_timeout():
+	get_parent().get_node("cogu travel").set_fixed_process(true)
+	queue_free()
