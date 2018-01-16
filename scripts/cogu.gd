@@ -1,10 +1,13 @@
 extends KinematicBody2D
 
 var direction = 1
+# last states vars
 var last_direction = 1
+
 const SPEED = 260
-const JUMP_FORCE = 240
+const JUMP_FORCE = 220
 const GRAVITY = 140
+const MAX_JUMP_OFFSET = 55
 var vertical_speed = 0
 var jump_offset = 0
 var stop_jump = false
@@ -21,15 +24,16 @@ var is_shooting = false
 
 var is_landing_sound_playing = false
 
+# scene nodes
 onready var shoot = preload("res://game_objects/projectiles/cogu-shoot.tscn")
+onready var camera = get_node("Camera2D")
 
 func _ready():
 	set_hidden(true)
 	#get_node("Sprite/AnimationPlayer").play("idle")
 	
 	#set_fixed_process(true)
-	#set_process_input(true)
-	
+	#set_process_input(true)	
 	
 func _input(event):
 	if event.is_action_pressed("shoot") and active_bullets < 3:
@@ -37,7 +41,10 @@ func _input(event):
 		is_shooting = true
 		var bullet = shoot.instance()
 		bullet.set_direction(last_direction)
-		bullet.set_pos(Vector2(get_pos().x + 45 * last_direction, get_pos().y + 7))			
+		if normal.y == -1:
+			bullet.set_pos(Vector2(get_pos().x + 45 * last_direction, get_pos().y + 7))			
+		else:
+			bullet.set_pos(Vector2(get_pos().x + 45 * last_direction, get_pos().y))			
 		get_parent().add_child(bullet)
 		get_node("timers/shoot timer").start()
 		active_bullets += 1
@@ -63,7 +70,7 @@ func _fixed_process(delta):
 		var cur_frame_force = JUMP_FORCE * delta
 		vertical_speed -= cur_frame_force
 		jump_offset += cur_frame_force
-		if jump_offset > 50: # 50 is currently the max jump offset
+		if jump_offset > MAX_JUMP_OFFSET: 
 			stop_jump = true
 	
 	vertical_speed = clamp(vertical_speed, -10, 18) # min and max 
@@ -127,3 +134,6 @@ func play_proper_animation():
 
 func _on_shoot_timer_timeout():
 	is_shooting = false
+	
+func turn_camera_as_current():
+	get_node("Camera2D").make_current()

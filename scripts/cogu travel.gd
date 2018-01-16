@@ -1,11 +1,16 @@
 extends KinematicBody2D
 
 const GRAVITY = 1400
+var has_sound_played = false
 
 func _ready():
 	pass
 	
 func _fixed_process(delta):
+	if not has_sound_played:
+		get_node("SamplePlayer2D").play("travel")
+		has_sound_played = true
+	
 	move(Vector2(0, GRAVITY * delta))
 	
 	if is_colliding():
@@ -18,4 +23,5 @@ func _on_AnimatedSprite_finished():
 		get_parent().get_node("player").set_fixed_process(true)
 		get_parent().get_node("player").set_process_input(true)
 		get_parent().get_node("player").get_node("Sprite/AnimationPlayer").play("idle")
+		get_parent().get_node("player").turn_camera_as_current()
 		queue_free()
