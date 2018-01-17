@@ -26,7 +26,6 @@ var is_landing_sound_playing = false
 
 # scene nodes
 onready var shoot = preload("res://game_objects/projectiles/cogu-shoot.tscn")
-onready var camera = get_node("Camera2D")
 
 func _ready():
 	set_hidden(true)
@@ -134,6 +133,3 @@ func play_proper_animation():
 
 func _on_shoot_timer_timeout():
 	is_shooting = false
-	
-func turn_camera_as_current():
-	get_node("Camera2D").make_current()
