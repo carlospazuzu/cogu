@@ -1,0 +1,126 @@
+[gd_scene load_steps=13 format=1]
+
+[ext_resource path="res://game_objects/enemies/helmet guy/helmet guy.gd" type="Script" id=1]
+[ext_resource path="res://assets/sprites/enemies/helmet_guy/helmet_guy-appear1.png" type="Texture" id=2]
+[ext_resource path="res://assets/sprites/enemies/helmet_guy/helmet_guy-appear3.png" type="Texture" id=3]
+[ext_resource path="res://assets/sprites/enemies/helmet_guy/helmet_guy-appear2.png" type="Texture" id=4]
+[ext_resource path="res://assets/sprites/enemies/helmet_guy/helmet_guy-hidden.png" type="Texture" id=5]
+[ext_resource path="res://assets/sound/SFX/enemy_damage.wav" type="Sample" id=6]
+[ext_resource path="res://assets/sound/SFX/reflect.wav" type="Sample" id=7]
+
+[sub_resource type="CanvasItemShader" id=3]
+
+_code = {
+"fragment": "uniform bool flash = false;
+
+if (flash) {
+	COLOR = vec4(255, 255, 255, COLOR.a);
+} else {
+	COLOR = COLOR;
+}",
+"fragment_ofs": 0,
+"light": "",
+"light_ofs": 0,
+"vertex": "",
+"vertex_ofs": 0
+}
+
+[sub_resource type="CanvasItemMaterial" id=4]
+
+shader/shader = SubResource( 3 )
+shader/shading_mode = 0
+shader_param/flash = false
+
+[sub_resource type="SpriteFrames" id=1]
+
+animations = [ {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 3 ), ExtResource( 4 ), ExtResource( 2 ), ExtResource( 5 ) ],
+"loop": false,
+"name": "hide",
+"speed": 10.0
+}, {
+"frames": [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 3 ) ],
+"loop": false,
+"name": "appear",
+"speed": 10.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=2]
+
+custom_solver_bias = 0.0
+extents = Vector2( 25.031, 25.717 )
+
+[sub_resource type="SampleLibrary" id=5]
+
+samples/enemy_damage = {
+"db": 1.0,
+"pitch": 0.01,
+"priority": 0,
+"sample": ExtResource( 6 )
+}
+samples/reflect = {
+"db": 1.0,
+"pitch": 0.01,
+"priority": 0,
+"sample": ExtResource( 7 )
+}
+
+[node name="helmet guy" type="KinematicBody2D"]
+
+input/pickable = false
+collision/layers = 1
+collision/mask = 1
+collision/margin = 0.08
+script/script = ExtResource( 1 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+
+material/material = SubResource( 4 )
+transform/scale = Vector2( 3, 3 )
+frames = SubResource( 1 )
+animation = "default"
+
+[node name="Area2D" type="Area2D" parent="."]
+
+input/pickable = true
+shapes/0/shape = SubResource( 2 )
+shapes/0/transform = Matrix32( 1, 0, 0, 1, 0, 4 )
+shapes/0/trigger = false
+gravity_vec = Vector2( 0, 1 )
+gravity = 98.0
+linear_damp = 0.1
+angular_damp = 1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+
+transform/pos = Vector2( 0, 4 )
+shape = SubResource( 2 )
+trigger = false
+_update_shape_index = 0
+
+[node name="Flashing Timer" type="Timer" parent="."]
+
+process_mode = 1
+wait_time = 0.07
+one_shot = true
+autostart = false
+
+[node name="SamplePlayer2D" type="SamplePlayer2D" parent="."]
+
+params/volume_db = 0.0
+params/pitch_scale = 0.0
+params/attenuation/min_distance = 1.0
+params/attenuation/max_distance = 2048.0
+params/attenuation/distance_exp = 1.0
+config/polyphony = 1
+config/samples = SubResource( 5 )
+config/pitch_random = 0.0
+
+[connection signal="timeout" from="Flashing Timer" to="." method="_on_Flashing_Timer_timeout"]
+
+

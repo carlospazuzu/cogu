@@ -21,6 +21,8 @@ var active_bullets = 0
 
 # animation status
 var is_shooting = false
+# booleans
+var player_input_blocked = false # initial state is false as fixed_process only is activated when cogu travel events are done
 
 var is_landing_sound_playing = false
 
@@ -35,7 +37,7 @@ func _ready():
 	#set_process_input(true)	
 	
 func _input(event):
-	if event.is_action_pressed("shoot") and active_bullets < 3:
+	if is_pressing_shoot(event) and active_bullets < 3:
 		get_node("SamplePlayer2D").play("bullet")	
 		is_shooting = true
 		var bullet = shoot.instance()
@@ -49,10 +51,10 @@ func _input(event):
 		active_bullets += 1
 
 func _fixed_process(delta):
-	if Input.is_action_pressed("ui_right"):
+	if is_pressing_right():
 		direction = 1
 		last_direction = 1
-	elif Input.is_action_pressed("ui_left"):
+	elif is_pressing_left():
 		direction = -1
 		last_direction = -1
 	else:
@@ -61,10 +63,10 @@ func _fixed_process(delta):
 	# gravity stuff	
 	vertical_speed += GRAVITY * delta
 	
-	if not Input.is_action_pressed("jump"):
+	if not is_pressing_jump():
 		has_to_release_jump_key = false
 	
-	if Input.is_action_pressed("jump") and not stop_jump and not has_to_release_jump_key:
+	if is_pressing_jump() and not stop_jump and not has_to_release_jump_key:
 		is_landing_sound_playing = false
 		var cur_frame_force = JUMP_FORCE * delta
 		vertical_speed -= cur_frame_force
@@ -86,7 +88,12 @@ func _fixed_process(delta):
 		#print(final_movement)
 		vertical_speed = normal.slide(Vector2(0, vertical_speed)).y
 		move(final_movement)		
-		if normal.y == -1: # if true means that player is colliding			
+		
+		# if true means the player has collided the ceiling
+		if normal.y == 1:
+			stop_jump = true
+		# if true means that player is colliding on ground
+		if normal.y == -1: 
 			if not is_landing_sound_playing:
 				if played_first_sound:
 					get_node("SamplePlayer2D").play("landing")
@@ -94,12 +101,12 @@ func _fixed_process(delta):
 			stop_jump = false
 			played_first_sound = true # MUST turn it off when die
 			jump_offset = 0
-			if Input.is_action_pressed("jump"): # avoid constant jumping by keep jump button pressed
+			if is_pressing_jump(): # avoid constant jumping by keep jump button pressed
 				has_to_release_jump_key = true
 	else:
 		is_colliding_safe = false
 		# this avoids player trying to jumping while falling
-		if not Input.is_action_pressed("jump"):
+		if not is_pressing_jump():
 			has_to_release_jump_key = true
 	
 	play_proper_animation()
@@ -119,7 +126,7 @@ func play_proper_animation():
 		elif get_node("Sprite/AnimationPlayer").get_current_animation() != "idle": 
 			get_node("Sprite/AnimationPlayer").play("idle")
 	# handles jumping animation
-	if is_colliding_safe == false or (vertical_speed < 0):
+	if (is_colliding_safe == false or normal.y == 1) or (vertical_speed < 0):
 		if is_shooting:
 			if get_node("Sprite/AnimationPlayer").get_current_animation() != "jumping-and-shooting":
 				get_node("Sprite/AnimationPlayer").play("jumping-and-shooting")
@@ -131,5 +138,17 @@ func play_proper_animation():
 	# not only for ground based collision and it can brings errors
 	# later as player interacts with another game objects (projectiles, enemies, etc)		
 
+# player input encapsulation
+func is_pressing_right():
+	return false if player_input_blocked else Input.is_action_pressed("ui_right")
+func is_pressing_left():
+	return false if player_input_blocked else Input.is_action_pressed("ui_left")
+func is_pressing_jump():
+	return false if player_input_blocked else Input.is_action_pressed("jump")
+func is_pressing_shoot(event):
+	return false if player_input_blocked else event.is_action_pressed("shoot")
+
 func _on_shoot_timer_timeout():
 	is_shooting = false
+
+func get_obj_ID(): return 'player'

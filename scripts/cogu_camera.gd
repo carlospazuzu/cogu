@@ -7,6 +7,5 @@ func _ready():
 	
 func _fixed_process(delta):
 	var current_x = player.get_pos().x - 389
-	current_x = clamp(current_x, 0, 1000)
+	current_x = clamp(current_x, 0, 48 * 2 * 16)
 	set_pos(Vector2(current_x, 0))
-	print(get_pos())
